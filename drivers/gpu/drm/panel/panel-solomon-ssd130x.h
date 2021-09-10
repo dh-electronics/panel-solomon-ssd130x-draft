@@ -8,6 +8,13 @@
  * Partially based on the the ssd1307fb linux fbdev driver by Free Electrons.
  */
 
+#include <drm/drm_panel.h>
+#include <linux/gpio/consumer.h>
+#include <linux/i2c.h>
+#include <linux/regulator/consumer.h>
+#include <linux/spi/spi.h>
+
+
 #define SSD130X_DATA				0x40
 #define SSD130X_COMMAND				0x80
 
@@ -44,3 +51,55 @@
 
 #define HALF_CONTRAST 127
 #define MAX_CONTRAST 255
+
+
+struct ssd130x_panel {
+	int (*command) (struct ssd130x_panel *ssd130x,
+			uint8_t cmd,
+			uint8_t *params,
+			size_t param_count
+	);
+	int (*data) (struct ssd130x_panel *ssd130x,
+		     uint8_t *data,
+		     size_t data_len
+	);
+	struct drm_panel panel;
+	struct device *dev;
+	union {
+		struct spi_device *spi;
+		struct i2c_client *i2c;
+	};
+	union {
+		struct gpio_desc *dc;	/* Data command (4-wire SPI) */
+		struct gpio_desc *sa0;	/* Slave address bit (I2C) */
+	};
+	struct gpio_desc *reset;	/* Reset */
+	struct regulator *vdd;		/* Core logic supply */
+	union {
+		struct regulator *vcc;	/* Panel driving supply */
+		struct regulator *vbat;	/* Charge pump regulator supply */
+	};
+	struct backlight_device *backlight;
+		struct {
+		unsigned int com_scan_dir_inv : 1;
+		unsigned int com_seq_pin_cfg : 1;
+		unsigned int com_lr_remap : 1;
+		unsigned int seg_remap : 1;
+		unsigned int inverse_display : 1;
+		unsigned int use_charge_pump : 1;
+		uint8_t height;
+		uint8_t width;
+		uint8_t height_mm;
+		uint8_t width_mm;
+		uint8_t display_start_line;
+		uint8_t com_offset ;
+		uint8_t contrast;
+		uint8_t pre_charge_period_dclocks_phase1;
+		uint8_t pre_charge_period_dclocks_phase2;
+		uint8_t vcomh_deselect_level;
+		uint8_t clock_divide_ratio;
+		uint8_t oscillator_frequency;
+	} display_settings;
+	bool prepared;
+	bool enabled;
+};

@@ -9,8 +9,10 @@
  */
 
 #include <drm/drm_panel.h>
+#include <linux/device.h>
 #include <linux/gpio/consumer.h>
 #include <linux/i2c.h>
+#include <linux/of.h>
 #include <linux/regulator/consumer.h>
 #include <linux/spi/spi.h>
 
@@ -103,3 +105,7 @@ struct ssd130x_panel {
 	bool prepared;
 	bool enabled;
 };
+
+int ssd130x_bus_independent_probe(struct ssd130x_panel *ssd130x,
+				  struct device *dev,
+				  struct device_node *node);

@@ -116,6 +116,16 @@ struct ssd130x_panel_info {
 	bool need_pwm;
 };
 
+static struct ssd130x_panel_info ssd1306_panel_info = {
+	.default_height = 64,
+	.default_width = 128,
+	.default_vcomh_deselect_level = 0x20,
+	.default_clock_divide_ratio = 1,
+	.default_oscillator_frequency = 8,
+	.has_chargepump = true,
+	.need_pwm = false,
+};
+
 int ssd130x_bus_independent_probe(struct ssd130x_panel *ssd130x,
 				  struct device *dev,
 				  struct device_node *node);

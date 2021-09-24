@@ -106,6 +106,16 @@ struct ssd130x_panel {
 	bool enabled;
 };
 
+struct ssd130x_panel_info {
+	unsigned int default_height;
+	unsigned int default_width;
+	uint8_t default_vcomh_deselect_level;
+	uint8_t default_clock_divide_ratio;
+	uint8_t default_oscillator_frequency;
+	bool has_chargepump;
+	bool need_pwm;
+};
+
 int ssd130x_bus_independent_probe(struct ssd130x_panel *ssd130x,
 				  struct device *dev,
 				  struct device_node *node);

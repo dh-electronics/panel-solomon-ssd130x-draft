@@ -12,6 +12,7 @@
 #include <linux/device.h>
 #include <linux/gpio/consumer.h>
 #include <linux/i2c.h>
+#include <linux/mod_devicetable.h>
 #include <linux/of.h>
 #include <linux/regulator/consumer.h>
 #include <linux/spi/spi.h>
@@ -129,3 +130,11 @@ static struct ssd130x_panel_info ssd1306_panel_info = {
 int ssd130x_bus_independent_probe(struct ssd130x_panel *ssd130x,
 				  struct device *dev,
 				  struct device_node *node);
+
+static const struct of_device_id ssd130x_of_match[] = {
+	{
+		.compatible = "solomon,ssd1306",
+		.data = (void *)&ssd1306_panel_info,
+	},
+	{ }
+};

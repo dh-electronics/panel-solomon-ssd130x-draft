@@ -138,3 +138,28 @@ static const struct of_device_id ssd130x_of_match[] = {
 	},
 	{ }
 };
+
+/**
+ * ssd130x_command() - Base function for sending commands to the display
+ * @ssd130x: The ssd130x_panel to which commands should be sent.
+ * @command_buf: Buffer from which the commands should be sent.
+ * @bytes: Size of the command buffer.
+ * 
+ * This function serves as base for the multi-parameter functions.
+ * It's implementation is defined by the protocol specific driver.
+ */
+int ssd130x_command(struct ssd130x_panel *ssd130x,
+		    uint8_t *cmd_buf,
+		    size_t bytes);
+
+int ssd130x_command_single(struct ssd130x_panel *ssd130x,
+			   uint8_t cmd);
+
+int ssd130x_command_1_param(struct ssd130x_panel *ssd130x,
+			    uint8_t cmd,
+			    uint8_t param);
+
+int ssd130x_command_2_params(struct ssd130x_panel *ssd130x,
+			     uint8_t cmd,
+			     uint8_t param1,
+			     uint8_t param2);

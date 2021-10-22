@@ -152,13 +152,40 @@ int ssd130x_command(struct ssd130x_panel *ssd130x,
 		    uint8_t *cmd_buf,
 		    size_t bytes);
 
+/**
+ * ssd130x_command_single() - Send a zero parameter command to the display
+ * @ssd130x: The ssd130x_panel to which the command should be sent.
+ * @cmd: The zero parameter command
+ * 
+ * Returns -ENOMEM if the command buffer could not be allocated or another
+ * error if the error occurred while trying to send the command.
+ */
 int ssd130x_command_single(struct ssd130x_panel *ssd130x,
 			   uint8_t cmd);
 
+/**
+ * ssd130x_command_1_param() - Send a one parameter command to the display
+ * @ssd130x: The ssd130x_panel to which the command should be sent.
+ * @cmd: The base command
+ * @param: The command parameter
+ * 
+ * Returns -ENOMEM if the command buffer could not be allocated or another
+ * error if the error occurred while trying to send the command.
+ */
 int ssd130x_command_1_param(struct ssd130x_panel *ssd130x,
 			    uint8_t cmd,
 			    uint8_t param);
 
+/**
+ * ssd130x_command_2_params() - Send a two parameter command to the display
+ * @ssd130x: ssd130x_panel to which the command should be sent.
+ * @cmd: The base command
+ * @param1: First command parameter
+ * @param2: Second command parameter
+ * 
+ * Returns -ENOMEM if the command buffer could not be allocated or another
+ * error if the error occurred while trying to send the command.
+ */
 int ssd130x_command_2_params(struct ssd130x_panel *ssd130x,
 			     uint8_t cmd,
 			     uint8_t param1,

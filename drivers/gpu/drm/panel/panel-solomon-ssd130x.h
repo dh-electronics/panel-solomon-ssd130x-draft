@@ -107,6 +107,12 @@ struct ssd130x_panel {
 	bool enabled;
 };
 
+static inline struct ssd130x_panel *drm_panel_to_ssd130x_panel(
+					struct drm_panel *panel)
+{
+	return container_of(panel, struct ssd130x_panel, panel);
+}
+
 struct ssd130x_panel_info {
 	unsigned int default_height;
 	unsigned int default_width;

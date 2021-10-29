@@ -167,3 +167,161 @@ int ssd130x_bus_independent_probe(struct ssd130x_panel *ssd130x,
 
 	return 0;
 }
+
+/**
+ * ssd130x_sw_init - Initialize the configuration of a ssd130x_panel device
+ * @ssd130x The ssd130x_panel to initialize.
+ *
+ * Software Configuration & Initialization Sequence
+ * Based on the SSD1306 manual from Solomon
+ *
+ * Tilde [~] marked entries do not appear in the software initialization
+ * sequence described in the manual and have been placed where they seem
+ * most fit.
+ *
+ * Set MUX ratio (A8h, 3Fh)
+ * Set display offset (D3h, 00h)
+ * Set display start line (40h)
+ * Set segment re-map (A0h/A1h)
+ * Set COM output scan direction (C0h/C8h)
+ * Set COM pins hardware configuration (DAh, 02)
+ *
+ * Set contrast (81h, F7h)
+ * Set pre-charge period (D9h, <device specific default >) [~]
+ * Set VCOMH deselect level (DBh, <device specific default>) [~]
+ * Entire display On (A4h)
+ * Set normal/inverse display (A6h)
+ * Set display clock divide ratio / oscillator frequency (D5h, 80h)
+ * 
+ * Part of the enable sequence:
+ * Enable charge pump regulator (8Dh, 14h)
+ * Display on (AFh)
+ */
+static int ssd130x_sw_init(struct ssd130x_panel *ssd130x)
+{
+	uint8_t com_pins_cfg;
+	uint8_t pre_charge_period_phase_1_2;
+	uint8_t display_clock;
+	int ret;
+
+	/* Set MUX ratio */
+	ret = ssd130x_command_1_param(ssd130x,
+				      SSD130X_SET_MULTIPLEX_RATIO,
+				      (ssd130x->display_settings.height - 1));
+	if (ret)
+		return ret;
+
+	/* Set display offset */
+	ret = ssd130x_command_1_param(ssd130x,
+				      SSD130X_SET_DISPLAY_OFFSET,
+				      ssd130x->display_settings.com_offset);
+	if (ret)
+		return ret;
+
+	/* Set display start line */
+	ret = ssd130x_command_single(ssd130x,
+				     SSD130X_SET_DISPLAY_START_LINE_ZERO |
+				     (ssd130x->display_settings
+				     .display_start_line & 0x7f));
+	if (ret)
+		return ret;
+
+	/* Set segment re-map */
+	if (ssd130x->display_settings.seg_remap)
+		ret = ssd130x_command_single(ssd130x, SSD130X_SEG_REMAP_ON);
+	else
+		ret = ssd130x_command_single(ssd130x, SSD130X_SEG_REMAP_OFF);
+	if (ret)
+		return ret;
+
+	/* Set COM output scan direction */
+	if (ssd130x->display_settings.com_scan_dir_inv)
+		ret =
+		ssd130x_command_single(ssd130x,
+				       SSD130X_SET_SCAN_DIRECTION_INVERTED);
+	else
+		ret =
+		ssd130x_command_single(ssd130x,
+				       SSD130X_SET_SCAN_DIRECTION_NORMAL);
+	if (ret)
+		return ret;
+
+	/* Set COM pins hardware configuration
+	 *
+	 * Default configuration, command unchanged (0xDA):
+	 * Alternative COM pin configuration (Bit[4] = 1b)
+	 * Disable COM Left/Right remap (Bit[5] = 0b)
+	 */
+	com_pins_cfg = 0x02 /* Base byte for COM pin data */
+		| !ssd130x->display_settings.com_seq_pin_cfg << 4
+		| ssd130x->display_settings.com_lr_remap << 5;
+	ret = ssd130x_command_1_param(ssd130x,
+				      SSD130X_SET_COM_PINS_CONFIG,
+				      com_pins_cfg);
+	if (ret)
+		return ret;
+
+	/* TODO: Remove this, when it has been proven that an earlier call by
+	 * the backlight does not affect the correct initialization of the
+	 * device.
+	 */
+	/* Set contrast */
+	ret = ssd130x_command_1_param(ssd130x,
+				      SSD130X_SET_CONTRAST_CONTROL,
+				      ssd130x->display_settings.contrast);
+	if (ret)
+		return ret;
+	
+	/* Set pre-charge period */
+	pre_charge_period_phase_1_2 =
+				ssd130x->display_settings
+					.pre_charge_period_dclocks_phase1
+				| (ssd130x->display_settings
+					.pre_charge_period_dclocks_phase2 << 4);
+
+	ret = ssd130x_command_1_param(ssd130x,
+				      SSD130X_SET_PRECHARGE_PERIOD,
+				      pre_charge_period_phase_1_2);
+	if (ret)
+		return ret;
+
+	/* Set VCOMH deselect level */
+	ret = ssd130x_command_1_param(ssd130x,
+				      SSD130X_SET_VCOMH_DESELECT_LEVEL,
+				      ssd130x->display_settings
+				      .vcomh_deselect_level);
+	if (ret)
+		return ret;
+
+	/* Entire display on */
+	ret = ssd130x_command_single(ssd130x, SSD130X_ENTIRE_DISPLAY_ON);
+	if (ret)
+		return ret;
+
+	/* Set normal/inverse display */
+	if (ssd130x->display_settings.inverse_display)
+		ret = ssd130x_command_single(ssd130x,
+					     SSD130X_SET_DISPLAY_MODE_INVERSE);
+	else
+		ssd130x_command_single(ssd130x,
+				       SSD130X_SET_DISPLAY_MODE_NORMAL);
+	if (ret)
+		return ret;
+
+	/* Set display clock divide ratio/oscillator frequency
+	 *
+	 * Data byte contains the display clock's
+	 * divide ratio         (A[3:0]) and
+	 * oscillator frequency (A[7:4]).
+	 */
+	display_clock = (
+		((ssd130x->display_settings.clock_divide_ratio - 1) & 0x0f) |
+		((ssd130x->display_settings.oscillator_frequency & 0x0f) << 4));
+	ret = ssd130x_command_1_param(ssd130x,
+				      SSD130X_SET_DISPLAY_CLOCK,
+				      display_clock);
+	if (ret)
+		return ret;
+
+	return 0;
+}

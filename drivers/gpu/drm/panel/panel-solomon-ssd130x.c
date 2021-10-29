@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 
+#include <linux/delay.h>
 #include <linux/device.h>
 #include <linux/gpio/consumer.h>
 #include <linux/of.h>
@@ -164,6 +165,81 @@ int ssd130x_bus_independent_probe(struct ssd130x_panel *ssd130x,
 					.oscillator_frequency))
 		ssd130x->display_settings.oscillator_frequency =
 				device_info->default_oscillator_frequency;
+
+	return 0;
+}
+
+/**
+ * ssd130x_power_on - Enable the supplies of an SSD130X panel
+ * @ssd130x: ssd130x_panel whose supplies should be enabled
+ *
+ * Power on sequence:
+ * 1. Power on VDD.
+ * 2. After VDD is stable, set RES# pin LOW for at least 3us and then high.
+ * 3. After RES# pin is set LOW, wait for at least 3us, then power on VCC.
+ * 4. After VCC is stable, send command AFh for display on.
+ *    SEG/COM will be on after 100ms. (Handled in ssd130x_init_display)
+ */
+static int ssd130x_power_on(struct ssd130x_panel *ssd130x)
+{
+	struct device *dev = ssd130x->dev;
+	int ret;
+
+	ret = regulator_enable(ssd130x->vdd);
+	if (ret) {
+		DRM_DEV_ERROR(dev,
+			      "failed to enable core logic supply: %d\n",
+			      ret);
+		return ret;
+	}
+
+	if (ssd130x->reset) {
+		gpiod_set_value_cansleep(ssd130x->reset, 0);
+		udelay(3);
+		gpiod_set_value_cansleep(ssd130x->reset, 1);
+	}
+
+	ret = regulator_enable(ssd130x->vcc);
+	if (ret) {
+		DRM_DEV_ERROR(dev,
+			      "failed to enable panel driving supply: %d\n",
+			      ret);
+		return ret;
+	}
+
+	return 0;
+}
+
+/**
+ * ssd130x_power_off - Disable the supplies of an SSD130X panel
+ * @ssd130x: ssd130x_panel whose supplies should be disabled
+ * 
+ * Power off sequence:
+ * 1. Send command AEh for display off. (Handled in ssd130x_disable)
+ * 2. Power off VCC.
+ * 3. Power off VDD after 100ms.
+ */
+
+static int ssd130x_power_off(struct ssd130x_panel *ssd130x)
+{
+	struct device *dev = ssd130x->dev;
+	int ret;
+
+	ret = regulator_disable(ssd130x->vcc);
+	if (ret) {
+		DRM_DEV_ERROR(dev,
+			      "failed to disable panel driving supply: %d\n",
+			      ret);
+		return ret;
+	}
+
+	ret = regulator_disable_deferred(ssd130x->vdd, 100);
+	if (ret) {
+		DRM_DEV_ERROR(dev,
+			      "failed to disable core logic supply ",
+			      dev);
+		return ret;
+	}
 
 	return 0;
 }

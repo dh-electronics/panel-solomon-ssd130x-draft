@@ -401,3 +401,105 @@ static int ssd130x_sw_init(struct ssd130x_panel *ssd130x)
 
 	return 0;
 }
+
+static int ssd130x_prepare(struct drm_panel *panel)
+{
+	struct ssd130x_panel *ssd130x = drm_panel_to_ssd130x_panel(panel);
+	struct device *dev = panel->dev;
+	int ret;
+
+	ret = ssd130x_power_on(ssd130x);
+	if (ret) {
+		DRM_DEV_ERROR(
+			      dev,
+			      "failed during regulator power-on: %d\n",
+			      ret);
+		return ret;
+	}
+
+	ret = ssd130x_sw_init(ssd130x);
+	if (ret) {
+		DRM_DEV_ERROR(dev,
+			      "failed during software initialization: %d\n",
+			      ret);
+		return ret;
+	}
+
+	return 0;
+}
+
+static int ssd130x_enable(struct drm_panel *panel)
+{
+	struct ssd130x_panel *ssd130x = drm_panel_to_ssd130x_panel(panel);
+	int ret;
+
+	/*
+	 * TODO: Evaluate if VCC can be powered independently from VDD
+	 * 
+	 * For additional power savings it might be useful to power off the
+	 * display driving regulator
+	 * Evaluate if this has unintended side effects.
+	 */
+
+	/* Enable charge pump regulator
+	 *
+	 * Specific of the SSD1306 display
+	 */
+	if (ssd130x->display_settings.use_charge_pump) {
+		ret = ssd130x_command_1_param(ssd130x,
+					      SSD130X_CHARGE_PUMP,
+					      SSD130X_CHARGE_PUMP_SETTING_ON);
+		if (ret)
+			return ret;
+	}
+
+	ret = ssd130x_command_single(ssd130x, SSD130X_DISPLAY_ON);
+
+	/* Wait for SEG/COM to become ready */
+	msleep(100);
+
+	return 0;
+}
+
+static int ssd130x_disable(struct drm_panel *panel)
+{
+	struct ssd130x_panel *ssd130x = drm_panel_to_ssd130x_panel(panel);
+	struct device *dev = panel->dev;
+	int ret;
+
+	ret = ssd130x_command_single(ssd130x, SSD130X_DISPLAY_OFF);
+
+	/* Disable the internal charge pump regulator */
+	if (ssd130x->display_settings.use_charge_pump) {
+		ret = ssd130x_command_1_param(ssd130x,
+					      SSD130X_CHARGE_PUMP,
+					      SSD130X_CHARGE_PUMP_SETTING_OFF);
+		if (ret)
+			return ret;
+	}
+
+	/*
+	 * TODO: Evaluate if VCC can be powered independently from VDD
+	 * 
+	 * See corresponding to-do in ssd130x_enable for more explanation.
+	 */
+
+	return 0;
+}
+
+static int ssd130x_unprepare(struct drm_panel *panel)
+{
+	struct ssd130x_panel *ssd130x = drm_panel_to_ssd130x_panel(panel);
+	struct device *dev = panel->dev;
+	int ret;
+
+	ret = ssd130x_power_off(ssd130x);
+	if (ret) {
+		DRM_DEV_ERROR(dev,
+			      "failed during regulator power-off: %d\n",
+			      ret);
+		return ret;
+	}
+
+	return 0;
+}

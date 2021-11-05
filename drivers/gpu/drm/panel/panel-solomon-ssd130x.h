@@ -17,6 +17,8 @@
 #include <linux/regulator/consumer.h>
 #include <linux/spi/spi.h>
 
+#include <drm/drm_modes.h>
+
 
 #define SSD130X_DATA				0x40
 #define SSD130X_COMMAND				0x80
@@ -69,6 +71,7 @@ struct ssd130x_panel {
 		     size_t data_len
 	);
 	struct drm_panel panel;
+	struct drm_display_mode mode;
 	struct device *dev;
 	union {
 		struct spi_device *spi;

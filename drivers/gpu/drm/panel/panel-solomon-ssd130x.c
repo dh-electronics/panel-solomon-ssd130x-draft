@@ -532,3 +532,10 @@ static int ssd130x_get_modes(struct drm_panel *panel,
 
 	return 1;
 }
+
+static const struct drm_panel_funcs ssd130x_panel_funcs = {
+	.prepare = ssd130x_prepare,
+	.enable = ssd130x_enable,
+	.disable = ssd130x_disable,
+	.unprepare = ssd130x_unprepare,
+};

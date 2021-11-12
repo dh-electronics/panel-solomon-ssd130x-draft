@@ -7,6 +7,8 @@
 #include <linux/of_device.h>
 #include <linux/regulator/consumer.h>
 
+#include <drm/drm_modes.h>
+
 #include "panel-solomon-ssd130x.h"
 
 
@@ -502,4 +504,31 @@ static int ssd130x_unprepare(struct drm_panel *panel)
 	}
 
 	return 0;
+}
+
+static int ssd130x_get_modes(struct drm_panel *panel,
+			     struct drm_connector *connector)
+{
+	struct ssd130x_panel *ssd130x = drm_panel_to_ssd130x_panel(panel);
+	struct drm_display_mode *mode;
+
+	mode = drm_mode_duplicate(connector->dev, &ssd130x->mode);
+	if (!mode) {
+		dev_err(ssd130x->dev,
+			"failed to add mode %ux%ux%@%u\n",
+			ssd130x->mode.hdisplay,
+			ssd130x->mode.vdisplay,
+			drm_mode_vrefresh(&ssd130x->mode));
+		return -ENOMEM;
+	}
+
+	drm_mode_set_name(mode);
+
+	mode->type = DRM_MODE_TYPE_DRIVER | DRM_MODE_TYPE_PREFERRED;
+	drm_mode_probed_add(connector, mode);
+
+	connector->display_info.width_mm = mode->width_mm;
+	connector->display_info.height_mm = mode->height_mm;
+
+	return 1;
 }

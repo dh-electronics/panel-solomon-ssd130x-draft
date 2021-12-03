@@ -215,3 +215,5 @@ int ssd130x_command_2_params(struct ssd130x_panel *ssd130x,
 int ssd130x_data(struct ssd130x_panel *ssd130x,
 		 uint8_t *data_buf,
 		 size_t data_len);
+
+static const struct drm_panel_funcs ssd130x_panel_funcs;

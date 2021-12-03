@@ -201,3 +201,17 @@ int ssd130x_command_2_params(struct ssd130x_panel *ssd130x,
 			     uint8_t cmd,
 			     uint8_t param1,
 			     uint8_t param2);
+
+/** ssd130x_data() - Send a data buffer, i. e. framebuffer, to the data register
+ * 		     of the given ssd130x_panel.
+ * @ssd130x: The ssd130x_panel to which the command should be sent.
+ * @data_buf: Pointer to the data buffer
+ * @data_len: Length of the data buffer in bytes
+ * 
+ * Returns a negative error number on failure.
+ * For return codes on success see the specific implementations, as these differ
+ * between SPI and I2C.
+ */
+int ssd130x_data(struct ssd130x_panel *ssd130x,
+		 uint8_t *data_buf,
+		 size_t data_len);

@@ -42,13 +42,6 @@ int ssd130x_bus_independent_probe(struct ssd130x_panel *ssd130x,
 		return ret;
 	}
 
-	ssd130x->dc = devm_gpiod_get_optional(dev, "dc_sa0", GPIOD_OUT_LOW);
-	if (IS_ERR(ssd130x->dc)) {
-		DRM_DEV_ERROR(dev, "Failed to get gpio 'dc_sa0'\n");
-		ret = PTR_ERR(ssd130x->dc);
-		return ret;
-	}
-
 	/* TODO: ENODEV should be returned to signal
 	 * that the critical section cannot be entered
 	 * because the device has been unplugged.

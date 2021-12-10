@@ -151,3 +151,9 @@ static int ssd130x_spi_4wire_remove(struct spi_device *spi)
 
 	return 0;
 }
+
+static const struct spi_device_id ssd130x_ids[] = {
+	{ "ssd1306", 0},
+	{ /* sentinel */ }
+};
+MODULE_DEVICE_TABLE(spi, ssd130x_ids);

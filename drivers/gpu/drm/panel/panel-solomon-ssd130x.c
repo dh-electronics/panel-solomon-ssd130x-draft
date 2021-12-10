@@ -2,6 +2,7 @@
 
 #include <linux/delay.h>
 #include <linux/device.h>
+#include <linux/dma-mapping.h>
 #include <linux/gpio/consumer.h>
 #include <linux/of.h>
 #include <linux/of_device.h>
@@ -11,6 +12,19 @@
 
 #include "panel-solomon-ssd130x.h"
 
+
+static int ssd130x_setup_dma_mask(struct device *dev)
+{
+	int ret = 0;
+
+	if (!dev->coherent_dma_mask) {
+		ret = dma_coerce_mask_and_coherent(dev, DMA_BIT_MASK(32));
+		if (ret)
+			dev_warn(dev, "Failed to set DMA mask %d\n", ret);
+	}
+
+	return ret;
+}
 
 int ssd130x_bus_independent_probe(struct ssd130x_panel *ssd130x,
 				  struct device *dev,

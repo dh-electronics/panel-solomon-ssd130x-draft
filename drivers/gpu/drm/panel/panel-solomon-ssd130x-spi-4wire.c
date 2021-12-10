@@ -157,3 +157,15 @@ static const struct spi_device_id ssd130x_ids[] = {
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(spi, ssd130x_ids);
+
+static const struct spi_driver ssd130x_spi_4wire_driver = {
+	.id_table = ssd130x_ids,
+	.probe = ssd130x_spi_4wire_probe,
+	.remove = ssd130x_spi_4wire_remove,
+	.driver = { 
+		.name = "ssd130x",
+		.owner = THIS_MODULE,
+		.of_match_table = ssd130x_of_match,
+	},
+};
+module_spi_driver(ssd130x_spi_4wire_driver);

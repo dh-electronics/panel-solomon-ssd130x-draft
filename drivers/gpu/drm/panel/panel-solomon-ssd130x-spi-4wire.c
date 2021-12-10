@@ -5,6 +5,7 @@
 #include <linux/spi/spi.h>
 
 #include "panel-solomon-ssd130x.h"
+#include "panel-solomon-ssd130x-backlight.h"
 
 
 static int ssd130x_spi_4wire_command(struct ssd130x_panel *ssd130x,
@@ -86,4 +87,47 @@ static int ssd130x_command_2_params(struct ssd130x_panel *ssd130x,
 	kfree(cmd_buf);
 
 	return ret;
+}
+
+static int ssd130x_spi_4wire_probe(struct spi_device *spi)
+{
+	struct device_node *node = spi->dev.of_node;
+	struct device *dev = &spi->dev;
+	struct ssd130x_panel *ssd130x;
+
+	int ret;
+
+	ret = ssd130x_setup_dma_mask(dev);
+	if (ret)
+		return ret;
+
+	ssd130x = devm_kzalloc(dev, sizeof(struct ssd130x_panel), GFP_KERNEL);
+	if (!ret)
+		return -ENOMEM;
+
+	ssd130x->spi = spi;
+
+	ssd130x_bus_independent_probe(ssd130x, dev, node);
+
+	ssd130x->dc = devm_gpiod_get(dev, "dc", GPIOD_OUT_LOW);
+	if (IS_ERR(ssd130x->dc)) {
+		DRM_DEV_ERROR(dev, "Failed to get gpio 'dc' (data/command)\n");
+		ret = PTR_ERR(ssd130x->dc);
+		return ret;
+	}
+
+	drm_panel_init(&ssd130x->panel, dev,
+		       &ssd130x_panel_funcs,
+		       DRM_MODE_CONNECTOR_SPI);
+
+	/* The backlight is a software backlight, hence the initialization after
+	 * the panel initialization
+	 */
+	ret = ssd130x_backlight_register(ssd130x);
+	if (ret)
+		return ret;
+
+	drm_panel_add(&ssd130x->panel);
+
+	return 0;
 }

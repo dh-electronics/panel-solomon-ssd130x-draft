@@ -134,22 +134,7 @@ static int ssd130x_spi_4wire_probe(struct spi_device *spi)
 
 static int ssd130x_spi_4wire_remove(struct spi_device *spi)
 {
-	struct ssd130x_panel *ssd130x = spi_get_drvdata(spi);
-	int ret;
-
-	ret = drm_panel_disable(&ssd130x->panel);
-	if (ret < 0)
-		dev_err(&ssd130x->dev,
-			"failed to disable panel during removal, %d\n", ret);
-
-	ret = drm_panel_unprepare(&ssd130x->panel);
-	if (ret < 0)
-		dev_err(&ssd130x->dev,
-			"failed to unprepare panel during removal, %d\n", ret);
-
-	drm_panel_remove(&ssd130x->panel);
-
-	return 0;
+	return ssd130x_remove(&spi->dev);
 }
 
 static const struct spi_device_id ssd130x_ids[] = {

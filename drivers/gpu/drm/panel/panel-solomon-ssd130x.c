@@ -546,3 +546,12 @@ static const struct drm_panel_funcs ssd130x_panel_funcs = {
 	.disable = ssd130x_disable,
 	.unprepare = ssd130x_unprepare,
 };
+
+void ssd130x_shutdown(struct device *dev)
+{
+	struct ssd130x_panel *ssd130x = dev_get_drvdata(dev);
+
+	drm_panel_disable(&ssd130x->panel);
+	drm_panel_unprepare(&ssd130x->panel);
+}
+EXPORT_SYMBOL_GPL(ssd130x_shutdown);

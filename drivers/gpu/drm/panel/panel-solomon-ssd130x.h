@@ -217,3 +217,5 @@ int ssd130x_data(struct ssd130x_panel *ssd130x,
 		 size_t data_len);
 
 static const struct drm_panel_funcs ssd130x_panel_funcs;
+
+void ssd130x_shutdown(struct device *dev);

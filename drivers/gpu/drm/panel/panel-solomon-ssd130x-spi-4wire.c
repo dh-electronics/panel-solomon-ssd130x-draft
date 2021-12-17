@@ -154,6 +154,7 @@ static const struct spi_driver ssd130x_spi_4wire_driver = {
 	.id_table = ssd130x_ids,
 	.probe = ssd130x_spi_4wire_probe,
 	.remove = ssd130x_spi_4wire_remove,
+	.shutdown = ssd130x_spi_4wire_shutdown,
 	.driver = { 
 		.name = "ssd130x",
 		.owner = THIS_MODULE,

@@ -555,3 +555,24 @@ void ssd130x_shutdown(struct device *dev)
 	drm_panel_unprepare(&ssd130x->panel);
 }
 EXPORT_SYMBOL_GPL(ssd130x_shutdown);
+
+int ssd130x_remove(struct device *dev) {
+
+	struct ssd130x_panel *ssd130x = dev_get_drvdata(dev);
+	int ret;
+
+	ret = drm_panel_disable(&ssd130x->panel);
+	if (ret < 0)
+		dev_err(&ssd130x->dev,
+			"failed to disable panel during removal, %d\n", ret);
+
+	ret = drm_panel_unprepare(&ssd130x->panel);
+	if (ret < 0)
+		dev_err(&ssd130x->dev,
+			"failed to unprepare panel during removal, %d\n", ret);
+
+	drm_panel_remove(&ssd130x->panel);
+
+	return 0;
+}
+EXPORT_SYMBOL_GPL(ssd130x_remove);

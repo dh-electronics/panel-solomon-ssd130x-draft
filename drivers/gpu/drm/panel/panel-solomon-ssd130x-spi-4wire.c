@@ -132,6 +132,13 @@ static int ssd130x_spi_4wire_probe(struct spi_device *spi)
 	return 0;
 }
 
+static int ssd130x_spi_4wire_shutdown(struct spi_device *spi)
+{
+	ssd130x_shutdown(&spi->dev);
+
+	return 0;
+}
+
 static int ssd130x_spi_4wire_remove(struct spi_device *spi)
 {
 	return ssd130x_remove(&spi->dev);

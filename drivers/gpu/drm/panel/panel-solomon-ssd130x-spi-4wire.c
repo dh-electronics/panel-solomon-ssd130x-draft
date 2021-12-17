@@ -169,3 +169,7 @@ static const struct spi_driver ssd130x_spi_4wire_driver = {
 	},
 };
 module_spi_driver(ssd130x_spi_4wire_driver);
+
+MODULE_AUTHOR("Dominik Kierner <dkierner@dh-electronics.com>");
+MODULE_DESCRIPTION("Solomon SSD130x panel 4-wire SPI driver");
+MODULE_LICENSE("GPL v2");

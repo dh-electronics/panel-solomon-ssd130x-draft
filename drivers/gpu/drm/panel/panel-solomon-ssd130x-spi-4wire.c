@@ -6,6 +6,7 @@
 
 #include "panel-solomon-ssd130x.h"
 #include "panel-solomon-ssd130x-backlight.h"
+#include "panel-solomon-ssd130x-spi.h"
 
 
 static int ssd130x_spi_4wire_command(struct ssd130x_panel *ssd130x,
@@ -106,6 +107,12 @@ static int ssd130x_spi_4wire_probe(struct spi_device *spi)
 		return -ENOMEM;
 
 	ssd130x->spi = spi;
+
+	ret = ssd130x_spi_setup(ssd130x, false);
+	if (ret) {
+		dev_err(dev, "Failed to setup SPI for 4wire communication\n");
+		return ret;
+	}
 
 	ssd130x_bus_independent_probe(ssd130x, dev, node);
 

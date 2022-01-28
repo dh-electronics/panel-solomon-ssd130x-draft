@@ -545,6 +545,7 @@ static const struct drm_panel_funcs ssd130x_panel_funcs = {
 	.enable = ssd130x_enable,
 	.disable = ssd130x_disable,
 	.unprepare = ssd130x_unprepare,
+	.get_modes = ssd130x_get_modes,
 };
 
 void ssd130x_shutdown(struct device *dev)
